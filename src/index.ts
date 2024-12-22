@@ -1,13 +1,32 @@
-import { JobScheduler } from './services/JobScheduler'
+import { NewsFetcher } from './services/NewsFetcher';
 
-console.log('Starting the application...')
+export default async function handler(req: Request) {
+  console.log('Cron job triggered: /api/fetchNews');
 
-const jobScheduler = new JobScheduler()
+  if (req.method !== 'GET' && req.method !== 'POST') {
+    console.log('Invalid method:', req.method);
+    return new Response(JSON.stringify({ error: 'Method not allowed' }), {
+      status: 405,
+      headers: { 'Content-Type': 'application/json' }
+    });
+  }
 
-jobScheduler.start()
+  const newsFetcher = new NewsFetcher();
 
-process.on('SIGINT', () => {
-  console.log('Gracefully shutting down...')
-  jobScheduler.stop()
-  process.exit(0)
-})
+  try {
+    console.log('Starting news fetch job');
+    await newsFetcher.fetchLatestNews();
+    console.log('Finished fetching and saving news');
+    return new Response(JSON.stringify({ message: 'News fetch completed successfully' }), {
+      status: 200,
+      headers: { 'Content-Type': 'application/json' }
+    });
+  } catch (error) {
+    console.error('Error fetching and saving news:', error);
+    return new Response(JSON.stringify({ error: 'Failed to fetch news', details: error }), {
+      status: 500,
+      headers: { 'Content-Type': 'application/json' }
+    });
+  }
+}
+
