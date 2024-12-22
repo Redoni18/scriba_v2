@@ -1,0 +1,153 @@
+generator client {
+    provider = "prisma-client-js"
+}
+
+datasource db {
+    provider = "postgresql"
+    url      = env("DATABASE_URL")
+}
+
+model NewsSource {
+    id         Int        @id @default(autoincrement())
+    name       String     @unique
+    websiteUrl String     @unique
+    logoUrl    String?
+    articles   Article[]
+    categories Category[]
+    tags       Tag[]
+    authors    Author[]
+    createdAt  DateTime   @default(now())
+    updatedAt  DateTime   @updatedAt
+}
+
+model Article {
+    id              Int      @id @default(autoincrement())
+    sourceUniqueId  String   @unique
+    title           String
+    content         String
+    excerpt         String
+    articleSummary  String
+    description     String?
+    date            DateTime
+    articleDateTime DateTime
+    thumbnail       String?
+    imageCover      String?
+    articleCover    String?
+    sourceUrl       String   @unique
+    createdAt       DateTime @default(now())
+    updatedAt       DateTime @updatedAt
+
+    newsSource   NewsSource @relation(fields: [newsSourceId], references: [id])
+    newsSourceId Int
+
+    categories CategoryOnArticle[]
+    tags       TagOnArticle[]
+    author     AuthorOnArticle?
+
+    userRatings UserRating[]
+    userReviews UserReview[]
+
+    @@index([sourceUniqueId])
+    @@index([date])
+    @@index([newsSourceId])
+}
+
+model Category {
+    id             Int                 @id @default(autoincrement())
+    sourceUniqueId String              @unique
+    name           String
+    articles       CategoryOnArticle[]
+    newsSource     NewsSource          @relation(fields: [newsSourceId], references: [id])
+    newsSourceId   Int
+
+    @@index([sourceUniqueId])
+    @@index([name])
+}
+
+model Tag {
+    id             Int            @id @default(autoincrement())
+    sourceUniqueId String         @unique
+    name           String
+    articles       TagOnArticle[]
+    newsSource     NewsSource     @relation(fields: [newsSourceId], references: [id])
+    newsSourceId   Int
+
+    @@index([sourceUniqueId])
+    @@index([name])
+}
+
+model Author {
+    id             Int               @id @default(autoincrement())
+    sourceUniqueId String            @unique
+    name           String
+    profileImage   String?
+    articles       AuthorOnArticle[]
+    newsSource     NewsSource        @relation(fields: [newsSourceId], references: [id])
+    newsSourceId   Int
+
+    @@index([sourceUniqueId])
+    @@index([name])
+}
+
+model CategoryOnArticle {
+    article    Article  @relation(fields: [articleId], references: [id])
+    articleId  Int
+    category   Category @relation(fields: [categoryId], references: [id])
+    categoryId Int
+
+    @@id([articleId, categoryId])
+}
+
+model TagOnArticle {
+    article   Article @relation(fields: [articleId], references: [id])
+    articleId Int
+    tag       Tag     @relation(fields: [tagId], references: [id])
+    tagId     Int
+
+    @@id([articleId, tagId])
+}
+
+model AuthorOnArticle {
+    article   Article @relation(fields: [articleId], references: [id])
+    articleId Int     @unique
+    author    Author  @relation(fields: [authorId], references: [id])
+    authorId  Int
+
+    @@id([articleId, authorId])
+}
+
+model User {
+    id        Int          @id @default(autoincrement())
+    email     String       @unique
+    name      String?
+    ratings   UserRating[]
+    reviews   UserReview[]
+    createdAt DateTime     @default(now())
+    updatedAt DateTime     @updatedAt
+}
+
+model UserRating {
+    id        Int      @id @default(autoincrement())
+    rating    Float
+    user      User     @relation(fields: [userId], references: [id])
+    userId    Int
+    article   Article  @relation(fields: [articleId], references: [id])
+    articleId Int
+    createdAt DateTime @default(now())
+    updatedAt DateTime @updatedAt
+
+    @@unique([userId, articleId])
+}
+
+model UserReview {
+    id        Int      @id @default(autoincrement())
+    content   String
+    user      User     @relation(fields: [userId], references: [id])
+    userId    Int
+    article   Article  @relation(fields: [articleId], references: [id])
+    articleId Int
+    createdAt DateTime @default(now())
+    updatedAt DateTime @updatedAt
+
+    @@unique([userId, articleId])
+}
