@@ -7,7 +7,7 @@ export class JobScheduler {
 
   constructor() {
     this.newsFetcher = new NewsFetcher()
-    this.newsFetchJob = cron.schedule('0 * * * *', this.fetchAndSaveNews.bind(this)) // Hourly schedule
+    this.newsFetchJob = cron.schedule('0 9-23 * * *', this.fetchAndSaveNews.bind(this)) // Hourly schedule
   }
 
   start() {
