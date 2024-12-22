@@ -1,6 +1,21 @@
-import { NewsFetcher } from './services/NewsFetcher';
+import { JobScheduler } from './services/JobScheduler'
 
-const newsFetcher = new NewsFetcher();
+console.log('[App] Starting the application...')
 
-console.log('Starting news fetch job');
-newsFetcher.fetchLatestNews();
+const jobScheduler = new JobScheduler()
+
+jobScheduler.start()
+
+process.on('SIGINT', async () => {
+  console.log('[App] Gracefully shutting down...')
+  jobScheduler.stop()
+  console.log('[App] Scheduler stopped.')
+  process.exit(0)
+})
+
+process.on('SIGTERM', async () => {
+  console.log('[App] Received SIGTERM...')
+  jobScheduler.stop()
+  console.log('[App] Scheduler stopped.')
+  process.exit(0)
+})
